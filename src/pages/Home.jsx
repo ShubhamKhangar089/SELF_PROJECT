@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Card from '../components/common/card'
 import Counter from '../components/examples/Counter'
+import Todo from '../components/examples/Todo'
 
 const Home = () => {
   const [selectedCard, setSelectedCard] = useState(null)
@@ -13,8 +14,8 @@ const Home = () => {
     setSelectedCard(null)
   }
 
-  // If a card is selected, show the component
-  if (selectedCard === 'counter') {
+  // If a card is selected, show the corresponding component
+  if (selectedCard === 'counter' || selectedCard === 'todo') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 py-8 px-4">
         <div className="max-w-4xl mx-auto">
@@ -24,9 +25,16 @@ const Home = () => {
           >
             <span>←</span> Back to Cards
           </button>
-          <Card title="Counter App">
-            <Counter />
-          </Card>
+          {selectedCard === 'counter' && (
+            <Card title="Counter App">
+              <Counter />
+            </Card>
+          )}
+          {selectedCard === 'todo' && (
+            <Card title="Todo App">
+              <Todo />
+            </Card>
+          )}
         </div>
       </div>
     )
@@ -41,14 +49,29 @@ const Home = () => {
         </h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Counter card */}
           <div
             onClick={() => handleCardClick('counter')}
             className="bg-white rounded-lg shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
           >
             <div className="flex flex-col items-center text-center">
-              <div className="text-5xl mb-4">🔢</div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Counter App</h2>
-              <p className="text-gray-600">Click to view a simple counter application with increment, decrement, and reset functionality.</p>
+              <p className="text-gray-600">
+                Click to view a simple counter application with increment, decrement, and reset functionality.
+              </p>
+            </div>
+          </div>
+
+          {/* Todo card */}
+          <div
+            onClick={() => handleCardClick('todo')}
+            className="bg-white rounded-lg shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
+          >
+            <div className="flex flex-col items-center text-center">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Todo App</h2>
+              <p className="text-gray-600">
+                Click to manage a todo list: add, complete, edit, and delete tasks with localStorage persistence.
+              </p>
             </div>
           </div>
         </div>
