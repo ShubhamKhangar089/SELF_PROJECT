@@ -5,6 +5,7 @@ import Admin from "./pages/Admin";
 import User from "./pages/user";
 import Login from "./components/auth/login";
 import Register from "./components/auth/register";
+import GameRoom from "./pages/GameRoom";
 
 const RequiredAuth = ({ allowedRoles, children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -26,20 +27,29 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      <Route
+      {/* <Route
         path="/admin"
         element={
           <RequiredAuth allowedRoles={["admin"]}>
             <Admin />
           </RequiredAuth>
         }
-      />
+      /> */}
 
       <Route
-        path="/user"
+        path="/home"
         element={
           <RequiredAuth allowedRoles={["user"]}>
             <User />
+          </RequiredAuth>
+        }
+      />
+
+      <Route
+        path="/game/:gameId"
+        element={
+          <RequiredAuth allowedRoles={["user", "admin"]}>
+            <GameRoom />
           </RequiredAuth>
         }
       />

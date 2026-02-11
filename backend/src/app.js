@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
+import gameRoutes from './routes/game.routes.js';
 
 dotenv.config();
 
@@ -26,5 +27,8 @@ app.get('/api/health', (req, res) => {
 
 // Auth routes
 app.use('/api/auth', authRoutes);
+
+// Game routes
+app.use('/api/games', gameRoutes);
 
 export default app;

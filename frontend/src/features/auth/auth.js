@@ -1,6 +1,17 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "../../services/api";
 
+const loadInitialAuth = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem("auth");
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+};
+
 // POST /auth/register
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
@@ -41,11 +52,32 @@ export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
   await api.post("/auth/logout");
 });
 
+const persisted = loadInitialAuth();
+
 const initialState = {
-  user: null,
-  token: null,
+  user: persisted?.user || null,
+  token: persisted?.token || null,
   status: "idle",
   error: null,
+};
+
+const persistAuth = (state) => {
+  if (typeof window === "undefined") return;
+  try {
+    const toStore = JSON.stringify({ user: state.user, token: state.token });
+    window.localStorage.setItem("auth", toStore);
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const clearPersistedAuth = () => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem("auth");
+  } catch {
+    // ignore storage errors
+  }
 };
 
 const authSlice = createSlice({
@@ -56,12 +88,14 @@ const authSlice = createSlice({
       const { user, token } = action.payload;
       state.user = user;
       state.token = token;
+      persistAuth(state);
     },
     clearCredentials: (state) => {
       state.user = null;
       state.token = null;
       state.status = "idle";
       state.error = null;
+      clearPersistedAuth();
     },
   },
   extraReducers: (builder) => {
@@ -75,6 +109,7 @@ const authSlice = createSlice({
         state.status = "succeeded";
         state.user = action.payload.user;
         state.token = action.payload.token;
+        persistAuth(state);
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.status = "failed";
@@ -89,6 +124,7 @@ const authSlice = createSlice({
         state.status = "succeeded";
         state.user = action.payload.user;
         state.token = action.payload.token;
+        persistAuth(state);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.status = "failed";
@@ -100,6 +136,7 @@ const authSlice = createSlice({
         state.token = null;
         state.status = "idle";
         state.error = null;
+        clearPersistedAuth();
       });
   },
 });
