@@ -12,7 +12,7 @@ const store = configureStore({
     game: gameReducer,
     chat: chatReducer,
     presence: presenceReducer,
-  },
+    },
 });
 
 export default store;

@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
 import gameRoutes from './routes/game.routes.js';
 import matchmakingRoutes from './routes/matchmaking.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 
 dotenv.config();
 
@@ -34,5 +35,8 @@ app.use('/api/games', gameRoutes);
 
 // Matchmaking routes
 app.use('/api/matchmaking', matchmakingRoutes);
+
+// Admin routes
+app.use('/api/admin', adminRoutes);
 
 export default app;

@@ -36,21 +36,21 @@ export const registerUser = createAsyncThunk(
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async ({ email, password }, { rejectWithValue }) => {
-    try {
+        try {
       const res = await api.post("/auth/login", { email, password });
       return res.data; // { token, user }
-    } catch (error) {
+        } catch (error) {
       const message =
         error.response?.data?.message || "Login failed";
       return rejectWithValue(message);
+        }
     }
-  }
 );
 
 // POST /auth/logout
 export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
   await api.post("/auth/logout");
-});
+  });
 
 const persisted = loadInitialAuth();
 
@@ -82,24 +82,24 @@ const clearPersistedAuth = () => {
 
 const authSlice = createSlice({
   name: "auth",
-  initialState,
+    initialState,
   reducers: {
     setCredentials: (state, action) => {
       const { user, token } = action.payload;
-      state.user = user;
-      state.token = token;
+            state.user = user;
+            state.token = token;
       persistAuth(state);
-    },
+        },
     clearCredentials: (state) => {
-      state.user = null;
-      state.token = null;
+            state.user = null;
+            state.token = null;
       state.status = "idle";
-      state.error = null;
+            state.error = null;
       clearPersistedAuth();
+        },
     },
-  },
   extraReducers: (builder) => {
-    builder
+        builder
       // register
       .addCase(registerUser.pending, (state) => {
         state.status = "loading";
@@ -118,28 +118,28 @@ const authSlice = createSlice({
       // login
       .addCase(loginUser.pending, (state) => {
         state.status = "loading";
-        state.error = null;
-      })
+            state.error = null;
+        })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+            state.user = action.payload.user;
+            state.token = action.payload.token;
         persistAuth(state);
-      })
+        })
       .addCase(loginUser.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Login failed";
-      })
+        })
       // logout
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.user = null;
-        state.token = null;
+        .addCase(logoutUser.fulfilled, (state) => {
+            state.user = null;
+            state.token = null;
         state.status = "idle";
-        state.error = null;
+            state.error = null;
         clearPersistedAuth();
-      });
-  },
-});
+          });
+    },
+});  
 
 export const { setCredentials, clearCredentials } = authSlice.actions;
 export default authSlice.reducer;

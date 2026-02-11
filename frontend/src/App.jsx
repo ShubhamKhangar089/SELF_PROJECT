@@ -27,20 +27,20 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* <Route
+      <Route
         path="/admin"
         element={
           <RequiredAuth allowedRoles={["admin"]}>
-            <Admin />
+      <Admin />
           </RequiredAuth>
         }
-      /> */}
+      />
 
       <Route
         path="/home"
         element={
           <RequiredAuth allowedRoles={["user"]}>
-            <User />
+      <User />
           </RequiredAuth>
         }
       />

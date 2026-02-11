@@ -34,23 +34,23 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4 text-xs md:text-sm">
-          {user && (
+        {user && (
             <div className="flex flex-col items-end leading-tight">
               <span className="text-slate-100 font-medium truncate max-w-[160px]">
                 {user.email}
               </span>
               <span className="text-[11px] uppercase tracking-wide text-slate-300">
                 {user.role}
-              </span>
+          </span>
             </div>
-          )}
-          <button
-            type="button"
-            onClick={handleLogout}
+        )}
+        <button
+          type="button"
+          onClick={handleLogout}
             className="px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-xs md:text-sm font-semibold shadow-sm"
-          >
-            Logout
-          </button>
+        >
+          Logout
+        </button>
         </div>
       </div>
     </nav>
