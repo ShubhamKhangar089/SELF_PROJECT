@@ -1,4 +1,36 @@
 import Game from '../model/game.model.js';
+import { emitToAll } from '../socket/connectionRegistry.js';
+
+// GET /api/games?status=waiting - list games (primarily open/waiting games)
+export const listGames = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.user?._id;
+    const status = req.query.status || 'waiting';
+
+    const filter = { status };
+
+    // For waiting games, only show ones where O has not joined yet
+    if (status === 'waiting') {
+      filter['players.o'] = null;
+    }
+
+    // Optional: exclude games created by the current user if you don't want to show them
+    if (userId) {
+      filter['players.x'] = { $ne: userId };
+    }
+
+    const games = await Game.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .populate('players.x', 'name email');
+
+    return res.status(200).json(games);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('List games error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
 // POST /api/games - create a new game with current user as X
 export const createGame = async (req, res) => {
@@ -17,6 +49,9 @@ export const createGame = async (req, res) => {
       status: 'waiting',
       currentTurn: 'X',
     });
+
+    // Notify all connected clients that the open games list has changed
+    emitToAll('open_games_changed');
 
     return res.status(201).json(game);
   } catch (error) {
@@ -54,6 +89,9 @@ export const joinGame = async (req, res) => {
     game.players.o = userId;
     game.status = 'in_progress';
     await game.save();
+
+    // Game is no longer waiting; notify clients to refresh open games
+    emitToAll('open_games_changed');
 
     return res.status(200).json(game);
   } catch (error) {

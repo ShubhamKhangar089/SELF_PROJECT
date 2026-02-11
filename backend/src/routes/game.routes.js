@@ -1,11 +1,14 @@
 import { Router } from 'express';
-import { createGame, getGame, joinGame } from '../controllers/game.controller.js';
+import { createGame, getGame, joinGame, listGames } from '../controllers/game.controller.js';
 import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
 
 // All game routes require auth
 router.use(authenticate);
+
+// List games (e.g., open waiting games)
+router.get('/', listGames);
 
 // Create a new game with current user as X
 router.post('/', createGame);

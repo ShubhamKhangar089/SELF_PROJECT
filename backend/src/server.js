@@ -7,6 +7,7 @@ import app from './app.js';
 import Game from './model/game.model.js';
 import { applyMove, checkWinner, getNextTurn, isValidMove } from './utils/tictactoe.js';
 import User from './model/user.model.js';
+import { getOnlineCount, registerSocket, setIO, unregisterSocket } from './socket/connectionRegistry.js';
 
 dotenv.config();
 
@@ -24,6 +25,8 @@ const startServer = async () => {
         credentials: true,
       },
     });
+
+    setIO(io);
 
     // Socket.io authentication middleware (per connection)
     io.use(async (socket, next) => {
@@ -58,6 +61,11 @@ const startServer = async () => {
     io.on('connection', (socket) => {
       // eslint-disable-next-line no-console
       console.log('Socket connected:', socket.id, 'user:', socket.user?.email);
+
+      if (socket.user?.id) {
+        registerSocket(socket.user.id, socket.id);
+        io.emit('online_count', { count: getOnlineCount() });
+      }
 
       // Join a game room
       socket.on('join_game', async ({ gameId }) => {
@@ -100,8 +108,22 @@ const startServer = async () => {
             return socket.emit('game_error', { message: 'Game not found' });
           }
 
-          if (game.status !== 'in_progress') {
-            return socket.emit('game_error', { message: 'Game is not in progress' });
+          // Normalize status transitions for robustness:
+          // - If game is finished, reject moves.
+          // - If game is still "waiting" but both players are present, treat this
+          //   as the official start and move it to "in_progress".
+          if (game.status === 'finished') {
+            return socket.emit('game_error', { message: 'Game is already finished' });
+          }
+
+          let statusChangedFromWaiting = false;
+          if (game.status === 'waiting') {
+            // If O hasn't joined yet, we are truly still waiting.
+            if (!game.players.o) {
+              return socket.emit('game_error', { message: 'Waiting for opponent to join' });
+            }
+            game.status = 'in_progress';
+            statusChangedFromWaiting = true;
           }
 
           const userId = socket.user?.id;
@@ -136,11 +158,112 @@ const startServer = async () => {
 
           await game.save();
 
+          // If we auto-transitioned from waiting -> in_progress, notify lobby clients
+          // that the open games list may have changed.
+          if (statusChangedFromWaiting) {
+            io.emit('open_games_changed');
+          }
+
           io.to(gameId).emit('game_update', game);
         } catch (error) {
           // eslint-disable-next-line no-console
           console.error('make_move error:', error);
           socket.emit('game_error', { message: 'Failed to make move' });
+        }
+      });
+
+      // Rematch request from one of the players
+      socket.on('rematch_request', async ({ gameId }) => {
+        try {
+          if (!gameId) return;
+
+          const game = await Game.findById(gameId);
+          if (!game) {
+            return socket.emit('game_error', { message: 'Game not found' });
+          }
+
+          if (game.status !== 'finished') {
+            return socket.emit('game_error', { message: 'Game is not finished yet' });
+          }
+
+          const userId = socket.user?.id;
+          const isPlayerX = String(game.players.x) === String(userId);
+          const isPlayerO = game.players.o && String(game.players.o) === String(userId);
+
+          if (!isPlayerX && !isPlayerO) {
+            return socket.emit('game_error', { message: 'You are not a player in this game' });
+          }
+
+          const payload = {
+            gameId,
+            from: {
+              id: socket.user.id,
+              name: socket.user.name,
+              email: socket.user.email,
+            },
+          };
+
+          io.to(gameId).emit('rematch_request', payload);
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('rematch_request error:', error);
+          socket.emit('game_error', { message: 'Failed to request rematch' });
+        }
+      });
+
+      // Response to a rematch request
+      socket.on('rematch_response', async ({ gameId, accepted }) => {
+        try {
+          if (!gameId) return;
+
+          const game = await Game.findById(gameId);
+          if (!game) {
+            return socket.emit('game_error', { message: 'Game not found' });
+          }
+
+          if (game.status !== 'finished') {
+            return socket.emit('game_error', { message: 'Game is not finished yet' });
+          }
+
+          const userId = socket.user?.id;
+          const isPlayerX = String(game.players.x) === String(userId);
+          const isPlayerO = game.players.o && String(game.players.o) === String(userId);
+
+          if (!isPlayerX && !isPlayerO) {
+            return socket.emit('game_error', { message: 'You are not a player in this game' });
+          }
+
+          if (!accepted) {
+            io.to(gameId).emit('rematch_declined', {
+              gameId,
+              from: {
+                id: socket.user.id,
+                name: socket.user.name,
+                email: socket.user.email,
+              },
+            });
+            return;
+          }
+
+          // Create a fresh game with the same players
+          const newGame = await Game.create({
+            players: {
+              x: game.players.x,
+              o: game.players.o,
+            },
+            status: 'in_progress',
+            currentTurn: 'X',
+          });
+
+          io.to(gameId).emit('rematch_started', {
+            oldGameId: gameId,
+            newGameId: newGame._id,
+            game: newGame,
+          });
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('rematch_response error:', error);
+          socket.emit('game_error', { message: 'Failed to handle rematch response' });
         }
       });
 
@@ -199,6 +322,10 @@ const startServer = async () => {
       socket.on('disconnect', () => {
         // eslint-disable-next-line no-console
         console.log('Socket disconnected:', socket.id);
+        if (socket.user?.id) {
+          unregisterSocket(socket.user.id, socket.id);
+          io.emit('online_count', { count: getOnlineCount() });
+        }
       });
     });
 
