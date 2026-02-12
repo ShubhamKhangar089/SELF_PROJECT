@@ -13,16 +13,20 @@ dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
+
+
 const startServer = async () => {
   try {
     await connectDB();
 
     const server = http.createServer(app);
+    console.log("SOCKET CLIENT_URL:", process.env.CLIENT_URL);
 
     const io = new Server(server, {
       cors: {
-        origin: "*",
+        origin: "https://tic-tac-toe-steel-one-68.vercel.app",
         methods: ["GET", "POST"],
+        credentials: true,
       },
     });
 

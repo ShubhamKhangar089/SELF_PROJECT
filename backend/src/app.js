@@ -10,12 +10,17 @@ import adminRoutes from './routes/admin.routes.js';
 dotenv.config();
 
 const app = express();
-
-app.use(cors());
+console.log("SOCKET CLIENT_URL:", process.env.CLIENT_URL);
+app.use(
+  cors({
+    origin: "https://tic-tac-toe-steel-one-68.vercel.app",
+    credentials: true,
+  })
+);
 
 app.use(express.json());
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
+// app.use(cookieParser());
+// app.use(express.urlencoded({ extended: true }));
 
 // Health check
 app.get('/api/health', (req, res) => {
