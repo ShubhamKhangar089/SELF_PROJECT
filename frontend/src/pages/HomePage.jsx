@@ -96,7 +96,7 @@ const User = () => {
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex-1 bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
-            <div>
+        <div>
               <h1 className="text-xl md:text-2xl font-bold text-slate-50 mb-1">
                 Lobby
               </h1>
