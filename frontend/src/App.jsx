@@ -1,10 +1,10 @@
 import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import Admin from "./pages/Admin";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
-import GameRoom from "./pages/GameRoom";x
+import Admin from "./pages/Admin";
+import GameRoom from "./pages/GameRoom";
 import Home from "./pages/HomePage";
 
 const RequiredAuth = ({ allowedRoles, children }) => {
