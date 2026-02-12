@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../../features/auth/auth";
 
 const Register = () => {
@@ -126,6 +126,13 @@ const Register = () => {
             >
               {isLoading ? "Creating account..." : "Sign Up"}
             </button>
+
+            <p className="text-[11px] text-center text-slate-400">
+              Already have an account?{" "}
+              <Link to="/login" className="text-emerald-400 font-semibold">
+                Sign in
+              </Link>
+            </p>
           </form>
         </div>
       </div>
