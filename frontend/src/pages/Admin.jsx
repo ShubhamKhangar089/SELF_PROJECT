@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { FiUsers, FiGrid, FiPlayCircle, FiCheckCircle } from "react-icons/fi";
-import Navbar from "../components/Navbar/Navbar";
+import Navbar from "../components/navbar/Navbar";
 import api from "../services/api";
 
 const Admin = () => {
