@@ -2,7 +2,7 @@ import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Login from "./components/auth/Login";
-import Register from "./components/auth/Register";
+import Register from "./components/auth/register";
 import Admin from "./pages/Admin";
 import GameRoom from "./pages/GameRoom";
 import Home from "./pages/HomePage";
